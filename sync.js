@@ -79,21 +79,34 @@ function updateUIFromState(state) {
   
   // Update chart if data exists and chart is initialized
   if (state.chartData) {
-    if (window.dropRateChart) {
-      if (state.chartData.labels) {
-        window.dropRateChart.data.labels = state.chartData.labels;
-      }
-      if (state.chartData.datasets?.[0]) {
-        if (state.chartData.datasets[0].data) {
+    try {
+      if (window.dropRateChart && window.dropRateChart.data) {
+        // Only update if we have data
+        if (state.chartData.labels && state.chartData.labels.length > 0) {
+          window.dropRateChart.data.labels = state.chartData.labels;
+        }
+        if (state.chartData.datasets?.[0]?.data) {
+          // Initialize datasets array if it doesn't exist
+          if (!window.dropRateChart.data.datasets) {
+            window.dropRateChart.data.datasets = [{}];
+          }
           window.dropRateChart.data.datasets[0].data = state.chartData.datasets[0].data;
+          
+          // Only update colors if they exist
+          if (state.chartData.datasets[0].backgroundColor) {
+            window.dropRateChart.data.datasets[0].backgroundColor = state.chartData.datasets[0].backgroundColor;
+          }
+          
+          // Only update if we have data to show
+          if (state.chartData.datasets[0].data.length > 0) {
+            window.dropRateChart.update();
+          }
         }
-        if (state.chartData.datasets[0].backgroundColor) {
-          window.dropRateChart.data.datasets[0].backgroundColor = state.chartData.datasets[0].backgroundColor;
-        }
-        window.dropRateChart.update();
+      } else {
+        console.log('Chart not yet initialized, will update when ready');
       }
-    } else {
-      console.log('Chart not yet initialized, will update when ready');
+    } catch (error) {
+      console.error('Error updating chart:', error);
     }
   }
   

@@ -77,7 +77,18 @@ let appState = {
 
 // Function to broadcast state to all clients
 function broadcastState() {
+  // Make sure chart data is properly initialized
+  if (appState.chartData) {
+    if (!appState.chartData.labels || !Array.isArray(appState.chartData.labels)) {
+      appState.chartData.labels = [];
+    }
+    if (!appState.chartData.datasets || !Array.isArray(appState.chartData.datasets)) {
+      appState.chartData.datasets = [{}];
+    }
+  }
+  
   io.emit('state', appState);
+  console.log('Broadcast state to all clients');
 }
 
 // Serve static files
