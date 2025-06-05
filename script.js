@@ -312,18 +312,43 @@ function changeValue(button, delta) {
   const input = button.parentElement.querySelector("input");
   const container = button.closest(".fish-item");
   const fishName = container.querySelector('.name').textContent;
+  const isSpecialFish = container.closest('#fishList2') !== null;
   const val = Math.max(0, (parseInt(input.value) || 0) + delta);
   
   input.value = val;
   updateItem(container, val);
+  
+  // Update totals and UI
   updateTotalCash();
   updateChart();
   saveState();
   
+  // Get the fish counts object for the appropriate table
+  const fishType = isSpecialFish ? 'specialFishCounts' : 'fishCounts';
+  const counts = {};
+  counts[fishType] = {};
+  
+  // Get all fish counts from the appropriate table
+  const tableId = isSpecialFish ? '#fishList2' : '#fishList';
+  document.querySelectorAll(`${tableId} .fish-item`).forEach(item => {
+    const name = item.querySelector('.name').textContent;
+    const value = parseInt(item.querySelector('input').value) || 0;
+    counts[fishType][name] = value;
+  });
+  
+  // Calculate total weight if it's the main fish list
+  if (!isSpecialFish) {
+    let totalWeight = 0;
+    document.querySelectorAll('#fishList .fish-item').forEach(item => {
+      const name = item.querySelector('.name').textContent;
+      const count = parseInt(item.querySelector('input').value) || 0;
+      totalWeight += count * (weights[name] || 0);
+    });
+    counts.totalWeight = totalWeight;
+  }
+  
   // Sync with server
-  const fishCounts = {};
-  fishCounts[fishName] = val;
-  updateServerState({ fishCounts });
+  updateServerState(counts);
 }
 
 function manualInputChange(input) {
@@ -668,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
-  // Format input on blur
+  // Format input on blur and sync with server
   const formatInput = (input) => {
     const value = input.value.replace(/\./g, '');
     if (value) {
@@ -677,16 +702,70 @@ document.addEventListener('DOMContentLoaded', function() {
         input.value = formatNumber(Math.round(number));
       }
     }
+    
+    // Update UI
     updateTotalCash();
     saveState();
     
-    // Sync with server
+    // Prepare updates for server
     const updates = {};
-    if (input.id === 'andreiCash') updates.andreiCash = input.value;
-    else if (input.id === 'mihaiCash') updates.mihaiCash = input.value;
-    else if (input.id === 'targetCash') updates.targetCash = input.value;
-    else if (input.id === 'maxWeightInput') updates.maxWeight = input.value;
     
+    // Handle cash inputs
+    if (input.id === 'andreiCash' || input.id === 'mihaiCash' || input.id === 'targetCash') {
+      updates[input.id] = input.value;
+      
+      // Calculate and update totals
+      const andreiCash = parseFloat(document.getElementById('andreiCash')?.value.replace(/\./g, '').replace(',', '.')) || 0;
+      const mihaiCash = parseFloat(document.getElementById('mihaiCash')?.value.replace(/\./g, '').replace(',', '.')) || 0;
+      const targetCash = parseFloat(document.getElementById('targetCash')?.value.replace(/\./g, '').replace(',', '.')) || 0;
+      
+      updates.totalCash1 = `Total Cash Avansat: ${formatNumber(andreiCash)}`;
+      updates.totalCash2 = `Total Cash Normal: ${formatNumber(mihaiCash)}`;
+      updates.totalCombined = `Total Cash: ${formatNumber(andreiCash + mihaiCash)}`;
+      
+      // Calculate and update percentage
+      const totalCash = andreiCash + mihaiCash;
+      const percentage = targetCash > 0 ? (totalCash / targetCash) * 100 : 0;
+      const percentageDisplay = document.getElementById('percentageDisplay');
+      if (percentageDisplay) {
+        percentageDisplay.textContent = percentage >= 100 ? 'Target atins! 🎉' : `${percentage.toFixed(2)}%`;
+        if (percentage >= 100) {
+          percentageDisplay.style.color = '#4CAF50';
+          percentageDisplay.style.fontWeight = 'bold';
+        } else if (percentage >= 50) {
+          percentageDisplay.style.color = '#FFA000';
+          percentageDisplay.style.fontWeight = 'normal';
+        } else {
+          percentageDisplay.style.color = '#F44336';
+          percentageDisplay.style.fontWeight = 'normal';
+        }
+      }
+    } 
+    // Handle weight input
+    else if (input.id === 'maxWeightInput') {
+      updates.maxWeight = input.value;
+      
+      // Update weight display
+      const maxWeight = parseFloat(input.value) || 0;
+      const totalWeight = parseFloat(document.getElementById('weightStatus')?.textContent.replace(/[^0-9,.]/g, '').replace(',', '.')) || 0;
+      const remainingWeight = Math.max(0, maxWeight - totalWeight);
+      
+      updates.totalWeight = totalWeight;
+      updates.weightStatus = `Greutate rămasă: ${remainingWeight.toFixed(2)} kg`;
+      
+      // Update progress bar
+      const progress = maxWeight > 0 ? Math.min(totalWeight / maxWeight, 1) : 0;
+      const remainingPercentage = (1 - progress) * 100;
+      
+      updates.progressFill = {
+        width: `${progress * 100}%`,
+        background: remainingPercentage >= 50 ? 'linear-gradient(90deg, #4CAF50, #8BC34A)' : 
+                   remainingPercentage >= 20 ? 'linear-gradient(90deg, #FFC107, #FFA000)' :
+                   'linear-gradient(90deg, #F44336, #D32F2F)'
+      };
+    }
+    
+    // Send updates to server if there are any
     if (Object.keys(updates).length > 0) {
       updateServerState(updates);
     }
