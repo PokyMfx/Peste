@@ -15,8 +15,8 @@ const socket = io({
   path: '/socket.io/'
 });
 
-// Make updateTotalCash available globally
-window.updateTotalCash = function() {
+// Make updateTotalCash available globally with a different name to avoid recursion
+window.syncUpdateTotalCash = function() {
   // This function is defined in script.js
   if (typeof updateTotalCash === 'function') {
     updateTotalCash();
@@ -100,6 +100,11 @@ function updateUIFromState(state) {
     if (state.totalCash2) document.getElementById('cashTab2').textContent = state.totalCash2;
     if (state.totalCombined) document.getElementById('cashTab3').textContent = state.totalCombined;
     
+    // Update totals using the sync function
+    if (window.syncUpdateTotalCash) {
+      window.syncUpdateTotalCash();
+    }
+    
     // Update weight status
     if (state.totalWeight !== undefined) {
       const maxWeight = parseFloat(document.getElementById('maxWeightInput')?.value) || 1;
@@ -154,8 +159,10 @@ function updateUIFromState(state) {
       return;
     }
     
-    if (!window.dropRateChart) {
-      console.log('Chart not initialized yet, skipping update');
+    // Wait for chart to be fully initialized
+    if (!window.dropRateChart || typeof window.dropRateChart.update !== 'function') {
+      console.log('Chart not initialized yet, will retry in 100ms');
+      setTimeout(() => updateChartFromState(state), 100);
       return;
     }
     
@@ -196,13 +203,17 @@ function updateUIFromState(state) {
         console.log('Updating chart with data:', chartData.datasets[0].data);
         
         try {
-          // Update the chart with error handling
-          window.dropRateChart.update({
-            duration: 300,
-            easing: 'easeOutQuad',
-            lazy: true
-          });
-          console.log('Chart update successful');
+          // Ensure the chart is still valid before updating
+          if (window.dropRateChart && typeof window.dropRateChart.update === 'function') {
+            window.dropRateChart.update({
+              duration: 300,
+              easing: 'easeOutQuad',
+              lazy: true
+            });
+            console.log('Chart update successful');
+          } else {
+            console.log('Chart instance not ready, skipping update');
+          }
         } catch (updateError) {
           console.error('Error during chart update:', updateError);
         }
