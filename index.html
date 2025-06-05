@@ -95,17 +95,14 @@
   <!-- Load Chart.js datalabels plugin v2.0.0 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
   <!-- Socket.IO -->
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   
   <!-- Your scripts -->
   <script src="script.js"></script>
   <script src="sync.js"></script>
   
-  <!-- Real-time sync script -->
+  <!-- Remove duplicate socket connection (it's in sync.js) -->
   <script>
-    // Connect to WebSocket server
-    const socket = io();
-    
     // Flag to prevent update loops
     let isUpdatingFromServer = false;
     

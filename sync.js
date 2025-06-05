@@ -1,9 +1,24 @@
 // Real-time sync functionality
 console.log('Connecting to WebSocket server...');
+
+// Get the current hostname and protocol
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const host = window.location.host;
+
+// Create socket connection with explicit URL
 const socket = io({
   reconnection: true,
   reconnectionAttempts: 5,
-  reconnectionDelay: 1000
+  reconnectionDelay: 1000,
+  transports: ['websocket'],
+  upgrade: false,
+  path: '/socket.io/'
+});
+
+console.log('WebSocket connection options:', {
+  url: window.location.host,
+  protocol,
+  host
 });
 
 // Flag to prevent update loops
