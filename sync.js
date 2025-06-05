@@ -15,6 +15,14 @@ const socket = io({
   path: '/socket.io/'
 });
 
+// Make updateTotalCash available globally
+window.updateTotalCash = function() {
+  // This function is defined in script.js
+  if (typeof updateTotalCash === 'function') {
+    updateTotalCash();
+  }
+};
+
 console.log('WebSocket connection options:', {
   url: window.location.host,
   protocol,
@@ -141,21 +149,39 @@ function updateUIFromState(state) {
   
   // Helper function to update chart from state
   function updateChartFromState(state) {
-    if (!window.dropRateChart || !state.chartData) return;
+    if (!state.chartData) {
+      console.log('No chart data in state');
+      return;
+    }
+    
+    if (!window.dropRateChart) {
+      console.log('Chart not initialized yet, skipping update');
+      return;
+    }
     
     try {
       const { chartData } = state;
       
+      // Initialize chart data structure if needed
+      if (!window.dropRateChart.data) {
+        window.dropRateChart.data = { labels: [], datasets: [{}] };
+      }
+      
       // Update labels if they exist
-      if (chartData.labels?.length > 0) {
+      if (chartData.labels && chartData.labels.length > 0) {
         window.dropRateChart.data.labels = chartData.labels;
+      }
+      
+      // Ensure datasets array exists
+      if (!window.dropRateChart.data.datasets) {
+        window.dropRateChart.data.datasets = [{}];
       }
       
       // Update dataset if it exists
       if (chartData.datasets?.[0]?.data) {
-        // Ensure datasets array exists
-        if (!window.dropRateChart.data.datasets) {
-          window.dropRateChart.data.datasets = [{}];
+        // Initialize dataset if needed
+        if (!window.dropRateChart.data.datasets[0]) {
+          window.dropRateChart.data.datasets[0] = {};
         }
         
         // Update data
@@ -169,12 +195,19 @@ function updateUIFromState(state) {
         
         console.log('Updating chart with data:', chartData.datasets[0].data);
         
-        // Update the chart
-        window.dropRateChart.update({
-          duration: 300,
-          easing: 'easeOutQuad',
-          lazy: true
-        });
+        try {
+          // Update the chart with error handling
+          window.dropRateChart.update({
+            duration: 300,
+            easing: 'easeOutQuad',
+            lazy: true
+          });
+          console.log('Chart update successful');
+        } catch (updateError) {
+          console.error('Error during chart update:', updateError);
+        }
+      } else {
+        console.log('No dataset data in chart update');
       }
     } catch (error) {
       console.error('Error updating chart:', error);
