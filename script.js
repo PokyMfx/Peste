@@ -593,37 +593,51 @@ function getFishCounts() {
 
 // Optimized chart update function
 const updateChart = debounce(() => {
-  if (!window.dropRateChart) return; // Ensure chart exists
+  console.log('updateChart called');
   
-  // Use requestAnimationFrame for smoother animations
+  if (!window.dropRateChart) {
+    console.error('Chart not initialized yet');
+    return;
+  }
+  
   requestAnimationFrame(() => {
-    // Get fish counts from first table for the chart
-    const counts = getFishCounts();
-    
-    const total = Math.max(1, counts.reduce((a, b) => a + b, 0)); // Prevent division by zero
-    const percentages = counts.map(c => ((c / total) * 100).toFixed(2));
-    
-    // Only update chart data if it has changed
-    const dataChanged = !dropRateChart.data.datasets[0].data.every((val, i) => val === percentages[i]);
-    
-    if (dataChanged) {
-      // Update chart with fish data from first table
-      dropRateChart.data.labels = fishNames;
-      dropRateChart.data.datasets[0].data = percentages;
+    try {
+      const counts = getFishCounts();
+      const total = Math.max(1, counts.reduce((a, b) => a + b, 0));
+      const percentages = counts.map(c => ((c / total) * 100).toFixed(2));
       
-      // Update with minimal animations
-      dropRateChart.update({
-        duration: 0, // No animation
-        lazy: true,
-        easing: 'easeOutQuart'
+      console.log('Updating chart with data:', { counts, total, percentages });
+      
+      // Update chart data
+      window.dropRateChart.data.datasets[0].data = percentages;
+      
+      // Update colors based on percentage
+      window.dropRateChart.data.datasets[0].backgroundColor = percentages.map(p => {
+        const percent = parseFloat(p);
+        if (percent > 20) return 'rgba(255, 99, 132, 0.7)';
+        if (percent > 10) return 'rgba(255, 206, 86, 0.7)';
+        return 'rgba(75, 192, 192, 0.7)';
       });
+      
+      // Update labels if needed
+      if (window.dropRateChart.data.labels.length === 0) {
+        window.dropRateChart.data.labels = fishNames;
+      }
+      
+      // Trigger update with animation
+      window.dropRateChart.update({
+        duration: 300,
+        easing: 'easeOutQuad'
+      });
+      
+      // After updating the chart, sync the state
+      console.log('Chart updated, syncing state...');
+      updateServerState({ chartData: window.dropRateChart.data });
+    } catch (error) {
+      console.error('Error in updateChart:', error);
     }
-    
-    // Calculate total weight (only from first table)
-    let totalWeight = 0;
-    fishNames.forEach((name, index) => {
-      totalWeight += counts[index] * (weights[name] || 0);
-    });
+  });
+}, 50);
     
     const maxWeight = parseFloat(document.getElementById("maxWeightInput")?.value) || 0;
     const remainingWeight = Math.max(0, maxWeight - totalWeight);
@@ -821,5 +835,3 @@ window.addEventListener('load', function() {
   handleResize();
   window.addEventListener('resize', handleResize);
 });
-
-updateChart();

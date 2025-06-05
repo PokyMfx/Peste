@@ -118,51 +118,67 @@ function updateUIFromState(state) {
   
   // Update chart if data exists and chart is initialized
   if (state.chartData) {
-    // Wait for chart to be initialized
-    const checkChart = setInterval(() => {
-      if (window.dropRateChart) {
-        clearInterval(checkChart);
-        try {
-          const { chartData } = state;
-          
-          // Update labels if they exist
-          if (chartData.labels?.length > 0) {
-            window.dropRateChart.data.labels = chartData.labels;
-          }
-          
-          // Update dataset if it exists
-          if (chartData.datasets?.[0]?.data) {
-            // Ensure datasets array exists
-            if (!window.dropRateChart.data.datasets) {
-              window.dropRateChart.data.datasets = [{}];
-            }
-            
-            // Update data
-            window.dropRateChart.data.datasets[0].data = chartData.datasets[0].data;
-            
-            // Update background colors if they exist
-            if (chartData.datasets[0].backgroundColor) {
-              window.dropRateChart.data.datasets[0].backgroundColor = 
-                chartData.datasets[0].backgroundColor;
-            }
-            
-            // Only update if we have data to show
-            if (chartData.datasets[0].data.length > 0) {
-              window.dropRateChart.update({
-                duration: 300,
-                easing: 'easeOutQuad',
-                lazy: true
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error updating chart:', error);
-        }
-      }
-    }, 100); // Check every 100ms for chart
+    console.log('Received chart data update:', state.chartData);
     
-    // Clear the interval after 5 seconds if chart never initializes
-    setTimeout(() => clearInterval(checkChart), 5000);
+    // If chart isn't ready yet, queue the update
+    if (!window.dropRateChart) {
+      console.log('Chart not ready, queuing update');
+      const checkChart = setInterval(() => {
+        if (window.dropRateChart) {
+          clearInterval(checkChart);
+          updateChartFromState(state);
+        }
+      }, 100);
+      
+      // Clear the interval after 5 seconds if chart never initializes
+      setTimeout(() => clearInterval(checkChart), 5000);
+      return;
+    }
+    
+    // Update chart immediately if it's ready
+    updateChartFromState(state);
+  }
+  
+  // Helper function to update chart from state
+  function updateChartFromState(state) {
+    if (!window.dropRateChart || !state.chartData) return;
+    
+    try {
+      const { chartData } = state;
+      
+      // Update labels if they exist
+      if (chartData.labels?.length > 0) {
+        window.dropRateChart.data.labels = chartData.labels;
+      }
+      
+      // Update dataset if it exists
+      if (chartData.datasets?.[0]?.data) {
+        // Ensure datasets array exists
+        if (!window.dropRateChart.data.datasets) {
+          window.dropRateChart.data.datasets = [{}];
+        }
+        
+        // Update data
+        window.dropRateChart.data.datasets[0].data = chartData.datasets[0].data;
+        
+        // Update background colors if they exist
+        if (chartData.datasets[0].backgroundColor) {
+          window.dropRateChart.data.datasets[0].backgroundColor = 
+            chartData.datasets[0].backgroundColor;
+        }
+        
+        console.log('Updating chart with data:', chartData.datasets[0].data);
+        
+        // Update the chart
+        window.dropRateChart.update({
+          duration: 300,
+          easing: 'easeOutQuad',
+          lazy: true
+        });
+      }
+    } catch (error) {
+      console.error('Error updating chart:', error);
+    }
   }
   
   // Update all UI elements
