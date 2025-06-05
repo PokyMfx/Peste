@@ -103,8 +103,7 @@
   
   <!-- Remove duplicate socket connection (it's in sync.js) -->
   <script>
-    // Flag to prevent update loops
-    let isUpdatingFromServer = false;
+    // Flag moved to sync.js
     
     // Listen for state updates from server
     socket.on('state', (state) => {
@@ -308,8 +307,5 @@
     // Load saved values when the page loads
     document.addEventListener('DOMContentLoaded', loadValues);
   </script>
-  <script src="firebase-sync.js"></script>
-  
-
 </body>
 </html>

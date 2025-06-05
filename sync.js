@@ -77,13 +77,23 @@ function updateUIFromState(state) {
   if (state.mihaiCash !== undefined) document.getElementById('mihaiCash').value = state.mihaiCash;
   if (state.targetCash !== undefined) document.getElementById('targetCash').value = state.targetCash;
   
-  // Update chart if data exists
-  if (state.chartData && window.dropRateChart) {
-    window.dropRateChart.data.labels = state.chartData.labels || [];
-    if (state.chartData.datasets && state.chartData.datasets[0]) {
-      window.dropRateChart.data.datasets[0].data = state.chartData.datasets[0].data || [];
-      window.dropRateChart.data.datasets[0].backgroundColor = state.chartData.datasets[0].backgroundColor || [];
-      window.dropRateChart.update();
+  // Update chart if data exists and chart is initialized
+  if (state.chartData) {
+    if (window.dropRateChart) {
+      if (state.chartData.labels) {
+        window.dropRateChart.data.labels = state.chartData.labels;
+      }
+      if (state.chartData.datasets?.[0]) {
+        if (state.chartData.datasets[0].data) {
+          window.dropRateChart.data.datasets[0].data = state.chartData.datasets[0].data;
+        }
+        if (state.chartData.datasets[0].backgroundColor) {
+          window.dropRateChart.data.datasets[0].backgroundColor = state.chartData.datasets[0].backgroundColor;
+        }
+        window.dropRateChart.update();
+      }
+    } else {
+      console.log('Chart not yet initialized, will update when ready');
     }
   }
   
