@@ -47,35 +47,74 @@ function updateUIFromState(state) {
   
   isUpdatingFromServer = true;
   
-  // Update fish counts (first table)
-  if (state.fishCounts) {
-    Object.entries(state.fishCounts).forEach(([name, count]) => {
-      const input = document.querySelector(`#fishList input[data-name="${name}"]`);
-      if (input && parseInt(input.value) !== count) {
-        input.value = count;
-        const item = input.closest('.fish-item');
-        if (item) updateItem(item, count);
+  try {
+    // Update fish counts (first table)
+    if (state.fishCounts) {
+      Object.entries(state.fishCounts).forEach(([name, count]) => {
+        const input = document.querySelector(`#fishList input[data-name="${name}"]`);
+        if (input && parseInt(input.value) !== count) {
+          input.value = count;
+          const item = input.closest('.fish-item');
+          if (item) updateItem(item, count);
+        }
+      });
+    }
+    
+    // Update special fish counts (second table)
+    if (state.specialFishCounts) {
+      Object.entries(state.specialFishCounts).forEach(([name, count]) => {
+        const input = document.querySelector(`#fishList2 input[data-name="${name}"]`);
+        if (input && parseInt(input.value) !== count) {
+          input.value = count;
+          const item = input.closest('.fish-item');
+          if (item) updateItem(item, count);
+        }
+      });
+    }
+    
+    // Update inputs and trigger change events
+    const updateInput = (id, value) => {
+      const el = document.getElementById(id);
+      if (el && el.value !== value) {
+        el.value = value;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.dispatchEvent(new Event('input', { bubbles: true }));
       }
-    });
-  }
-  
-  // Update special fish counts (second table)
-  if (state.specialFishCounts) {
-    Object.entries(state.specialFishCounts).forEach(([name, count]) => {
-      const input = document.querySelector(`#fishList2 input[data-name="${name}"]`);
-      if (input && parseInt(input.value) !== count) {
-        input.value = count;
-        const item = input.closest('.fish-item');
-        if (item) updateItem(item, count);
+    };
+    
+    if (state.maxWeight !== undefined) updateInput('maxWeightInput', state.maxWeight);
+    if (state.andreiCash !== undefined) updateInput('andreiCash', state.andreiCash);
+    if (state.mihaiCash !== undefined) updateInput('mihaiCash', state.mihaiCash);
+    if (state.targetCash !== undefined) updateInput('targetCash', state.targetCash);
+    
+    // Update totals display
+    if (state.totalCash1) document.getElementById('cashTab').textContent = state.totalCash1;
+    if (state.totalCash2) document.getElementById('cashTab2').textContent = state.totalCash2;
+    if (state.totalCombined) document.getElementById('cashTab3').textContent = state.totalCombined;
+    
+    // Update weight status
+    if (state.totalWeight !== undefined) {
+      const maxWeight = parseFloat(document.getElementById('maxWeightInput')?.value) || 1;
+      const remainingWeight = Math.max(0, maxWeight - state.totalWeight);
+      const weightStatus = document.getElementById('weightStatus');
+      if (weightStatus) {
+        weightStatus.textContent = `Greutate rămasă: ${remainingWeight.toFixed(2)} kg`;
       }
-    });
+      
+      // Update progress bar
+      const progress = maxWeight > 0 ? Math.min(state.totalWeight / maxWeight, 1) : 0;
+      const progressBar = document.getElementById('weightProgressFill');
+      if (progressBar) {
+        progressBar.style.width = `${progress * 100}%`;
+        progressBar.style.background = progress >= 1 ? '#f44336' : 
+                                       progress >= 0.8 ? '#ff9800' : '#4caf50';
+      }
+    }
+  } catch (error) {
+    console.error('Error updating UI from state:', error);
+  } finally {
+    isUpdatingFromServer = false;
   }
-  
-  // Update inputs
-  if (state.maxWeight !== undefined) document.getElementById('maxWeightInput').value = state.maxWeight;
-  if (state.andreiCash !== undefined) document.getElementById('andreiCash').value = state.andreiCash;
-  if (state.mihaiCash !== undefined) document.getElementById('mihaiCash').value = state.mihaiCash;
-  if (state.targetCash !== undefined) document.getElementById('targetCash').value = state.targetCash;
   
   // Update chart if data exists and chart is initialized
   if (state.chartData) {
@@ -163,9 +202,62 @@ function updateUIFromState(state) {
 // Listen for state updates from server
 socket.on('state', updateUIFromState);
 
-// Function to send state updates to server
+// Function to send complete UI state to server
 function updateServerState(updates) {
-  if (!isUpdatingFromServer) {
-    socket.emit('update', updates);
-  }
+  if (isUpdatingFromServer || !socket.connected) return;
+  
+  // Get all fish counts from both tables
+  const fishCounts = {};
+  const specialFishCounts = {};
+  
+  document.querySelectorAll('#fishList .fish-item').forEach(item => {
+    const name = item.querySelector('.name').textContent;
+    const value = parseInt(item.querySelector('input').value) || 0;
+    fishCounts[name] = value;
+  });
+  
+  document.querySelectorAll('#fishList2 .fish-item').forEach(item => {
+    const name = item.querySelector('.name').textContent;
+    const value = parseInt(item.querySelector('input').value) || 0;
+    specialFishCounts[name] = value;
+  });
+  
+  // Get all input values
+  const maxWeight = document.getElementById('maxWeightInput')?.value || '0';
+  const andreiCash = document.getElementById('andreiCash')?.value || '0';
+  const mihaiCash = document.getElementById('mihaiCash')?.value || '0';
+  const targetCash = document.getElementById('targetCash')?.value || '0';
+  
+  // Calculate total weight
+  let totalWeight = 0;
+  document.querySelectorAll('#fishList .fish-item').forEach(item => {
+    const name = item.querySelector('.name').textContent;
+    const count = parseInt(item.querySelector('input').value) || 0;
+    totalWeight += count * (weights[name] || 0);
+  });
+  
+  // Get cash totals
+  const totalCash1 = document.getElementById('cashTab')?.textContent || '0';
+  const totalCash2 = document.getElementById('cashTab2')?.textContent || '0';
+  const totalCombined = document.getElementById('cashTab3')?.textContent || '0';
+  
+  // Prepare complete state
+  const completeState = {
+    ...updates,
+    fishCounts,
+    specialFishCounts,
+    maxWeight,
+    andreiCash,
+    mihaiCash,
+    targetCash,
+    totalWeight,
+    totalCash1,
+    totalCash2,
+    totalCombined,
+    // Include any chart data if it exists
+    chartData: window.dropRateChart?.data || null
+  };
+  
+  console.log('Sending complete state to server:', completeState);
+  socket.emit('update', completeState);
 }
