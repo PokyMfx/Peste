@@ -455,8 +455,13 @@ specialFish.forEach(fish => {
 });
 
 // Chart initialization with performance optimizations
-const ctx = document.getElementById('dropRateChart').getContext('2d');
-const dropRateChart = new Chart(ctx, {
+const ctx = document.getElementById('dropRateChart')?.getContext('2d');
+if (!ctx) {
+  console.error('Could not find chart canvas');
+}
+
+// Store chart in window object so it's accessible globally
+window.dropRateChart = new Chart(ctx, {
   type: 'bar',
   data: {
     labels: fishNames,

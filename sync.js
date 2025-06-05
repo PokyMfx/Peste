@@ -79,35 +79,51 @@ function updateUIFromState(state) {
   
   // Update chart if data exists and chart is initialized
   if (state.chartData) {
-    try {
-      if (window.dropRateChart && window.dropRateChart.data) {
-        // Only update if we have data
-        if (state.chartData.labels && state.chartData.labels.length > 0) {
-          window.dropRateChart.data.labels = state.chartData.labels;
-        }
-        if (state.chartData.datasets?.[0]?.data) {
-          // Initialize datasets array if it doesn't exist
-          if (!window.dropRateChart.data.datasets) {
-            window.dropRateChart.data.datasets = [{}];
-          }
-          window.dropRateChart.data.datasets[0].data = state.chartData.datasets[0].data;
+    // Wait for chart to be initialized
+    const checkChart = setInterval(() => {
+      if (window.dropRateChart) {
+        clearInterval(checkChart);
+        try {
+          const { chartData } = state;
           
-          // Only update colors if they exist
-          if (state.chartData.datasets[0].backgroundColor) {
-            window.dropRateChart.data.datasets[0].backgroundColor = state.chartData.datasets[0].backgroundColor;
+          // Update labels if they exist
+          if (chartData.labels?.length > 0) {
+            window.dropRateChart.data.labels = chartData.labels;
           }
           
-          // Only update if we have data to show
-          if (state.chartData.datasets[0].data.length > 0) {
-            window.dropRateChart.update();
+          // Update dataset if it exists
+          if (chartData.datasets?.[0]?.data) {
+            // Ensure datasets array exists
+            if (!window.dropRateChart.data.datasets) {
+              window.dropRateChart.data.datasets = [{}];
+            }
+            
+            // Update data
+            window.dropRateChart.data.datasets[0].data = chartData.datasets[0].data;
+            
+            // Update background colors if they exist
+            if (chartData.datasets[0].backgroundColor) {
+              window.dropRateChart.data.datasets[0].backgroundColor = 
+                chartData.datasets[0].backgroundColor;
+            }
+            
+            // Only update if we have data to show
+            if (chartData.datasets[0].data.length > 0) {
+              window.dropRateChart.update({
+                duration: 300,
+                easing: 'easeOutQuad',
+                lazy: true
+              });
+            }
           }
+        } catch (error) {
+          console.error('Error updating chart:', error);
         }
-      } else {
-        console.log('Chart not yet initialized, will update when ready');
       }
-    } catch (error) {
-      console.error('Error updating chart:', error);
-    }
+    }, 100); // Check every 100ms for chart
+    
+    // Clear the interval after 5 seconds if chart never initializes
+    setTimeout(() => clearInterval(checkChart), 5000);
   }
   
   // Update all UI elements
