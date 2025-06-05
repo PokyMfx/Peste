@@ -1,8 +1,30 @@
 // Real-time sync functionality
-const socket = io();
+console.log('Connecting to WebSocket server...');
+const socket = io({
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000
+});
 
 // Flag to prevent update loops
 let isUpdatingFromServer = false;
+
+// Connection events
+socket.on('connect', () => {
+  console.log('Connected to WebSocket server with ID:', socket.id);
+});
+
+socket.on('disconnect', () => {
+  console.log('Disconnected from WebSocket server');});
+
+socket.on('connect_error', (error) => {
+  console.error('WebSocket connection error:', error);
+});
+
+socket.on('state', (state) => {
+  console.log('Received state update:', state);
+  updateUIFromState(state);
+});
 
 // Function to update UI from server state
 function updateUIFromState(state) {
