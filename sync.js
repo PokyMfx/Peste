@@ -54,28 +54,65 @@ function updateUIFromState(state) {
   if (!state) return;
   
   isUpdatingFromServer = true;
+  console.log('Updating UI from state:', state);
   
   try {
+    // Update max weight input
+    if (state.maxWeight !== undefined) {
+      const maxWeightInput = document.getElementById('maxWeightInput');
+      if (maxWeightInput && maxWeightInput.value !== state.maxWeight.toString()) {
+        maxWeightInput.value = state.maxWeight;
+        // Trigger input event to update other dependent fields
+        maxWeightInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    
+    // Update cash inputs
+    if (state.andreiCash !== undefined) {
+      const andreiCashInput = document.getElementById('andreiCash');
+      if (andreiCashInput && andreiCashInput.value !== state.andreiCash.toString()) {
+        andreiCashInput.value = state.andreiCash;
+        andreiCashInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    
+    if (state.mihaiCash !== undefined) {
+      const mihaiCashInput = document.getElementById('mihaiCash');
+      if (mihaiCashInput && mihaiCashInput.value !== state.mihaiCash.toString()) {
+        mihaiCashInput.value = state.mihaiCash;
+        mihaiCashInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    
+    if (state.targetCash !== undefined) {
+      const targetCashInput = document.getElementById('targetCash');
+      if (targetCashInput && targetCashInput.value !== state.targetCash.toString()) {
+        targetCashInput.value = state.targetCash;
+        targetCashInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
     // Update fish counts (first table)
     if (state.fishCounts) {
-      Object.entries(state.fishCounts).forEach(([name, count]) => {
-        const input = document.querySelector(`#fishList input[data-name="${name}"]`);
-        if (input && parseInt(input.value) !== count) {
+      Object.entries(state.fishCounts).forEach(([fishName, count]) => {
+        const input = document.querySelector(`#fishList input[data-fish="${fishName}"]`);
+        if (input && input.value !== count.toString()) {
           input.value = count;
-          const item = input.closest('.fish-item');
-          if (item) updateItem(item, count);
+          // Trigger both input and change events to ensure all handlers are called
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
     }
     
     // Update special fish counts (second table)
     if (state.specialFishCounts) {
-      Object.entries(state.specialFishCounts).forEach(([name, count]) => {
-        const input = document.querySelector(`#fishList2 input[data-name="${name}"]`);
-        if (input && parseInt(input.value) !== count) {
+      Object.entries(state.specialFishCounts).forEach(([fishName, count]) => {
+        const input = document.querySelector(`#fishList2 input[data-fish="${fishName}"]`);
+        if (input && input.value !== count.toString()) {
           input.value = count;
-          const item = input.closest('.fish-item');
-          if (item) updateItem(item, count);
+          // Trigger both input and change events to ensure all handlers are called
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
     }
@@ -226,8 +263,14 @@ function updateUIFromState(state) {
   }
   
   // Update all UI elements
-  updateTotalCash();
-  updateSecondTable();
+  if (window.syncUpdateTotalCash) {
+    window.syncUpdateTotalCash();
+  }
+  
+  // Update second table
+  if (typeof updateSecondTable === 'function') {
+    updateSecondTable();
+  }
   
   // Update weight display
   if (state.totalWeight !== undefined) {
