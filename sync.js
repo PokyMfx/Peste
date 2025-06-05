@@ -1,21 +1,10 @@
 // Real-time sync functionality
-console.log('Connecting to WebSocket server...');
+console.log('Sync script loaded');
 
-// Get the current hostname and protocol
-const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const host = window.location.host;
+// Use the global socket connection from index.html
+const socket = window.socket;
 
-// Create socket connection with explicit URL
-const socket = io({
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  transports: ['websocket'],
-  upgrade: false,
-  path: '/socket.io/'
-});
-
-// Make updateTotalCash available globally with a different name to avoid recursion
+// Make updateTotalCash available globally
 window.syncUpdateTotalCash = function() {
   // This function is defined in script.js
   if (typeof updateTotalCash === 'function') {
@@ -23,35 +12,34 @@ window.syncUpdateTotalCash = function() {
   }
 };
 
-console.log('WebSocket connection options:', {
-  url: window.location.host,
-  protocol,
-  host
-});
-
-// Flag to prevent update loops
-let isUpdatingFromServer = false;
-
 // Connection events
-socket.on('connect', () => {
-  console.log('Connected to WebSocket server with ID:', socket.id);
-});
+if (socket) {
+  socket.on('connect', () => {
+    console.log('Connected to WebSocket server with ID:', socket.id);
+  });
 
-socket.on('disconnect', () => {
-  console.log('Disconnected from WebSocket server');});
+  socket.on('disconnect', () => {
+    console.log('Disconnected from WebSocket server');
+  });
 
-socket.on('connect_error', (error) => {
-  console.error('WebSocket connection error:', error);
-});
+  socket.on('connect_error', (error) => {
+    console.error('WebSocket connection error:', error);
+  });
 
-socket.on('state', (state) => {
-  console.log('Received state update:', state);
-  updateUIFromState(state);
-});
+  // Listen for state updates from server
+  socket.on('state', (state) => {
+    console.log('Received state update:', state);
+    updateUIFromState(state);
+  });
+} else {
+  console.error('Socket.IO connection not found');
+}
 
 // Function to update UI from server state
 function updateUIFromState(state) {
   if (!state) return;
+  
+  let isUpdatingFromServer = false;
   
   isUpdatingFromServer = true;
   console.log('Updating UI from state:', state);

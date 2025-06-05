@@ -101,54 +101,27 @@
   <script src="script.js"></script>
   <script src="sync.js"></script>
   
-  <!-- Remove duplicate socket connection (it's in sync.js) -->
+  <!-- Socket.IO connection and state management is handled in sync.js -->
   <script>
-    // Flag moved to sync.js
-    
-    // Listen for state updates from server
-    socket.on('state', (state) => {
-      isUpdatingFromServer = true;
-      
-      // Update fish counts
-      if (state.fishCounts) {
-        Object.entries(state.fishCounts).forEach(([name, count]) => {
-          const input = document.querySelector(`input[data-name="${name}"]`);
-          if (input && parseInt(input.value) !== count) {
-            input.value = count;
-            const item = input.closest('.fish-item');
-            if (item) updateItem(item, count);
-          }
-        });
-      }
-      
-      // Update cash inputs
-      if (state.andreiCash !== undefined) {
-        document.getElementById('andreiCash').value = state.andreiCash;
-      }
-      if (state.mihaiCash !== undefined) {
-        document.getElementById('mihaiCash').value = state.mihaiCash;
-      }
-      if (state.targetCash !== undefined) {
-        document.getElementById('targetCash').value = state.targetCash;
-      }
-      if (state.maxWeight !== undefined) {
-        document.getElementById('maxWeightInput').value = state.maxWeight;
-      }
-      
-      // Update UI
-      updateTotalCash();
-      updateChart();
-      updateSecondTable();
-      
-      isUpdatingFromServer = false;
+    // Make sure the socket is accessible globally
+    window.socket = io({
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      transports: ['websocket'],
+      upgrade: false,
+      path: '/socket.io/'
     });
     
+    // Global flag to prevent update loops
+    window.isUpdatingFromServer = false;
+    
     // Function to send state updates to server
-    function updateServerState(updates) {
-      if (!isUpdatingFromServer) {
-        socket.emit('update', updates);
+    window.updateServerState = function(updates) {
+      if (!window.isUpdatingFromServer && window.socket) {
+        window.socket.emit('update', updates);
       }
-    }
+    };
   </script>
   
   <!-- Firebase Sync -->
