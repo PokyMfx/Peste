@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Fish Counter - Contor Pescuit</title>
+  <meta name="description" content="Aplicație pentru urmărirea capturilor de pește și calcularea valorii acestora" />
+  <meta name="theme-color" content="#1a1a1a" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐟</text></svg>" />
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐟</text></svg>" />
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <div class="container">
+    <div class="main-content">
+      <!-- Left Fish List -->
+      <div class="fish-list">
+        <div class="header">
+          <div class="name">Pesti</div>
+          <div class="counter">Cantitate</div>
+          <div class="greutate">Greutate</div>
+          <div class="money">Bani</div>
+        </div>
+        <div id="fishList"></div>
+        <button id="resetButton" class="touch-btn" aria-label="Reset Avansat">Reset</button>
+      </div>
+
+      <!-- Middle Chart Section -->
+      <div class="chart-section">
+        <div class="cash-tab" id="cashTab">Total Cash Avansat: $0</div>
+        <div class="cash-tab" id="cashTab2">Total Cash Normal: $0</div>
+        <div class="cash-tab" id="cashTab3">Total Cash: $0</div>
+        <div id="chartContainer">
+          <canvas id="dropRateChart"></canvas>
+          <div id="totalFishCount" class="fish-count">Pesti dati: 0</div>
+        </div>
+      </div>
+      
+      <!-- Weight Section -->
+      <div class="weight-section">
+        <div class="weight-container">
+          <div class="weight-stats">
+            <div class="fish-count-display">
+              <span class="label">Pesti dati:</span>
+              <span id="fishCountDisplay" class="value">0</span>
+            </div>
+            <div class="weight-input-group">
+              <span class="label">Greutate maximă:</span>
+              <input inputmode="numeric" pattern="[0-9]*" type="text" id="maxWeightInput" value="0" class="weight-input touch-input" style="font-size:16px;" />
+              <span class="label">kg</span>
+            </div>
+          </div>
+          <div id="weightStatus">Greutate rămasă: 0.00 kg</div>
+          <div class="progress-bar" style="margin-top: 5px; background: #e0e0e0;">
+            <div id="weightProgressFill" style="height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+          </div>
+          
+          <!-- Cash Inputs Section -->
+          <div class="cash-inputs" style="margin-top: 20px; padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+            <div class="cash-input-group">
+              <label>Bani impachetati Andrei:</label>
+              <input inputmode="numeric" pattern="[0-9]*" type="text" id="andreiCash" value="0" class="cash-input touch-input" style="font-size:16px;" aria-label="Bani impachetati Andrei" />
+            </div>
+            <div class="cash-input-group">
+              <label>Bani impachetati Mihai:</label>
+              <input inputmode="numeric" pattern="[0-9]*" type="text" id="mihaiCash" value="0" class="cash-input touch-input" style="font-size:16px;" aria-label="Bani impachetati Mihai" />
+            </div>
+            <div class="cash-input-group">
+              <label>Target:</label>
+              <input inputmode="numeric" pattern="[0-9]*" type="text" id="targetCash" value="0" class="cash-input touch-input" style="font-size:16px;" aria-label="Target" />
+            </div>
+            <div id="percentageDisplay" class="percentage-display">0% din target</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Fish List -->
+      <div class="fish-list">
+        <div class="header">
+          <div class="name">Pesti</div>
+          <div class="counter">Cantitate</div>
+          <div class="money">Bani</div>
+        </div>
+        <div id="fishList2"></div>
+        <button id="resetButton2" class="touch-btn" aria-label="Reset Normal">Reset</button>
+      </div>
+    </div>
+  </div>
+  <!-- Load Chart.js v3.9.1 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <!-- Load Chart.js datalabels plugin v2.0.0 -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <!-- Firebase Configuration -->
+  <script src="firebase-config.js"></script>
+  
+  <!-- Your script -->
+  <script src="script.js"></script>
+  
+  <!-- Firebase Sync -->
+  <script>
+    // Format number with thousand separators
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Remove thousand separators for calculations
+    function parseNumber(str) {
+      return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
+    // Save values to localStorage
+    function saveValues() {
+      localStorage.setItem('andreiCash', document.getElementById('andreiCash').value);
+      localStorage.setItem('mihaiCash', document.getElementById('mihaiCash').value);
+      localStorage.setItem('targetCash', document.getElementById('targetCash').value);
+    }
+
+    // Load values from localStorage
+    function loadValues() {
+      // Set initial values to empty to prevent flash of 0
+      const inputs = ['andreiCash', 'mihaiCash', 'targetCash'];
+      inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+      });
+      
+      // Load from localStorage
+      const andreiCash = localStorage.getItem('andreiCash') || '0';
+      const mihaiCash = localStorage.getItem('mihaiCash') || '0';
+      const targetCash = localStorage.getItem('targetCash') || '0';
+      
+      // Set values directly with formatting
+      const setFormattedValue = (id, value) => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const num = parseFloat(value) || 0;
+        input.value = formatNumber(num);
+      };
+      
+      setFormattedValue('andreiCash', andreiCash);
+      setFormattedValue('mihaiCash', mihaiCash);
+      setFormattedValue('targetCash', targetCash);
+      
+      // Update the percentage display
+      updatePercentage();
+    }
+    
+    // Format a single input element's value with thousand separators
+    function formatSingleInput(input) {
+      if (!input) return;
+      // Remove all except digits (for number) and format
+      let value = input.value.replace(/[^\d]/g, '');
+      if (!value) {
+        input.value = '';
+        return;
+      }
+      const num = parseFloat(value);
+      if (isNaN(num)) {
+        input.value = '';
+        return;
+      }
+      // Format number with dot as thousand separator
+      const formattedNumber = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      // Always prefix with $
+      const formatted = `$${formattedNumber}`;
+      // Calculate cursor position
+      let cursorPos = input.selectionStart;
+      // Count the number of digits before the cursor in the old value
+      let rawDigitsBefore = (input.value.slice(0, cursorPos).replace(/[^\d]/g, '').length);
+      // Set value
+      input.value = formatted;
+      // Now, set the cursor after the same number of digits
+      let newCursorPos = 0, digitsSeen = 0;
+      while (digitsSeen < rawDigitsBefore && newCursorPos < input.value.length) {
+        if (/[\d]/.test(input.value[newCursorPos])) digitsSeen++;
+        newCursorPos++;
+      }
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    }
+
+    // Attach blur and change event listeners to cash inputs to format on leaving field
+    ['andreiCash', 'mihaiCash', 'targetCash'].forEach(id => {
+      const input = document.getElementById(id);
+      if (input) {
+        input.addEventListener('input', function() { formatSingleInput(input); });
+        input.addEventListener('blur', function() { formatSingleInput(input); });
+        input.addEventListener('change', function() { formatSingleInput(input); });
+      }
+    });
+
+    // Format input values with thousand separators (typically on user input)
+    function formatInputs() {
+      const inputIds = ['andreiCash', 'mihaiCash', 'targetCash'];
+      requestAnimationFrame(() => {
+        inputIds.forEach(id => {
+          const input = document.getElementById(id);
+          if (input) {
+            formatSingleInput(input);
+          }
+        });
+        saveValues();
+      });
+    }
+
+    // Helper function to parse formatted numbers
+    function parseFormattedNumber(value) {
+      if (!value) return 0;
+      // Remove all non-digit characters and parse as float
+      const num = parseFloat(value.replace(/\D/g, ''));
+      return isNaN(num) ? 0 : num;
+    }
+
+    function updatePercentage() {
+      
+      // Get and parse values
+      const andrei = parseFormattedNumber(document.getElementById('andreiCash')?.value || '0');
+      const mihai = parseFormattedNumber(document.getElementById('mihaiCash')?.value || '0');
+      const target = parseFormattedNumber(document.getElementById('targetCash')?.value || '0');
+      
+      // Save values whenever they change (debounced)
+      if (window.saveValues) {
+        window.saveValues();
+      }
+      
+      // Calculate percentage of target reached
+      const total = andrei + mihai;
+      let percentage = 0;
+      
+      if (target > 0) {
+        percentage = Math.min(Math.round((total / target) * 100), 100);
+      }
+      
+      // Update the percentage display
+      const percentageDisplay = document.getElementById('percentageDisplay');
+      if (percentageDisplay) {
+        if (percentage >= 100) {
+          percentageDisplay.textContent = 'Targetul a fost atins! 🎉';
+          percentageDisplay.style.color = '#4caf50'; // Green
+          percentageDisplay.style.fontWeight = 'bold';
+        } else if (percentage >= 50) {
+          percentageDisplay.textContent = `${percentage}% din target`;
+          percentageDisplay.style.color = '#ff9800'; // Orange
+          percentageDisplay.style.fontWeight = 'normal';
+        } else {
+          percentageDisplay.textContent = `${percentage}% din target`;
+          percentageDisplay.style.color = '#f44336'; // Red
+          percentageDisplay.style.fontWeight = 'normal';
+        }
+      }
+    }
+
+    // Load saved values when the page loads
+    document.addEventListener('DOMContentLoaded', loadValues);
+  </script>
+  <script src="firebase-sync.js"></script>
+  
+
+</body>
+</html>

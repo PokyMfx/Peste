@@ -1,0 +1,855 @@
+/* Modern Dark Grey Theme with Subtle White Glow */
+:root {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2a2a2a;
+  --bg-tertiary: #333;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --accent: #ffffff;
+  --border: #3a3a3a;
+  --highlight: rgba(255, 255, 255, 0.05);
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --transition: all 0.3s ease;
+  --accent-color: #ffffff;
+  --accent-glow: 0 0 10px rgba(255, 255, 255, 0.15);
+  --accent-hover: rgba(255, 255, 255, 0.15);
+  --accent-active: rgba(255, 255, 255, 0.25);
+}
+
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  html, body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
+  padding: 20px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+.touch-input {
+  font-size: 16px !important;
+  padding: 10px 8px;
+  min-width: 70px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.touch-btn {
+  font-size: 18px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin: 8px 0;
+  background: var(--bg-tertiary);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  box-shadow: var(--accent-glow);
+  transition: var(--transition);
+}
+.touch-btn:active {
+  background: var(--accent-active);
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 20px;
+  }
+  .container {
+    padding: 6px;
+  }
+  .fish-list, .chart-section, .weight-section {
+    width: 100% !important;
+    min-width: 0;
+    margin-bottom: 28px;
+    padding: 12px 6px;
+    box-sizing: border-box;
+  }
+  .header, .fish-item {
+    font-size: 14px;
+    padding: 4px 0;
+  }
+  .cash-input, .weight-input, .touch-input {
+    width: 100% !important;
+    min-width: 0;
+    font-size: 16px !important;
+    margin-bottom: 10px;
+  }
+  .touch-btn {
+    width: 100%;
+    margin: 12px 0;
+    font-size: 17px;
+    padding: 14px 0;
+  }
+  .cash-input-group, .weight-input-group {
+    margin-bottom: 18px;
+  }
+  #chartContainer {
+    max-width: 100vw;
+    overflow-x: auto;
+    padding-bottom: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 2px;
+  }
+  .container {
+    padding: 0 2px;
+  }
+  .main-content {
+    flex-direction: column !important;
+    gap: 10px;
+  }
+  .fish-list, .chart-section, .weight-section {
+    margin-bottom: 12px;
+    padding: 2px 2px 10px 2px;
+  }
+  .header, .fish-item {
+    font-size: 12px;
+    padding: 1px 0;
+  }
+  .touch-btn {
+    font-size: 15px;
+    padding: 10px 0;
+    margin: 8px 0;
+  }
+  .cash-input, .weight-input, .touch-input {
+    font-size: 15px !important;
+    padding: 8px 6px;
+  }
+  .cash-input-group, .weight-input-group {
+    margin-bottom: 12px;
+  }
+  #chartContainer {
+    padding-bottom: 8px;
+  }
+}
+
+
+@media (max-width: 600px) {
+  body {
+    padding: 4px;
+  }
+  .container {
+    padding: 0;
+  }
+  .main-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .fish-list, .chart-section, .weight-section {
+    margin-bottom: 16px;
+    padding: 4px;
+  }
+  .header, .fish-item {
+    font-size: 13px;
+    padding: 2px 0;
+  }
+  .touch-btn {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+}
+
+
+/* Layout */
+.container {
+  max-width: 100%;
+  margin: 0;
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* First table - aligned all the way to the left */
+.fish-list:first-child {
+  position: absolute;
+  left: -30px;
+  top: -10px;
+}
+
+/* Chart section - centered */
+.chart-section {
+  position: absolute;
+  left: calc(50% + 3px); /* Slight right offset */
+  top: -10px;
+  transform: translateX(-50%);
+  margin: 0;
+  width: 800px; /* Increased width */
+  min-width: 800px;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  margin: 0 20px; /* Add some horizontal margin */
+}
+
+#chartContainer {
+  width: 100% !important;
+  height: 300px !important; /* Fixed height */
+  margin: 0 auto !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  position: relative;
+  contain: content; /* Improve rendering performance */
+  will-change: transform; /* Optimize animations */
+}
+
+#dropRateChart {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Weight progress bar styles */
+#weightProgressContainer {
+  width: 100%;
+  margin-top: 15px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* Weight Section */
+.weight-section {
+  position: absolute;
+  left: calc(50% + 3px);
+  top: 550px; /* Positioned lower */
+  transform: translateX(-50%);
+  width: 800px;
+  min-width: 800px;
+  max-width: 800px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  margin: 0 20px;
+}
+
+.weight-container {
+  width: 100%;
+}
+
+.weight-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.fish-count-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.fish-count-display .value {
+  color: #90ee90;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.weight-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#weightStatus {
+  font-size: 14px;
+  color: #90ee90;
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 5px 0;
+}
+
+#progressFill {
+  height: 100%;
+  width: 0%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+/* Weight input styles */
+#maxWeightContainer {
+  width: 100%;
+  margin: 10px 0;
+  text-align: center;
+}
+
+#maxWeightContainer .label {
+  font-size: 12px;
+  color: #ddd;
+  margin-right: 5px;
+}
+
+#maxWeightInput {
+  width: 80px;
+  padding: 3px 5px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #fff;
+  text-align: right;
+  margin-right: 5px;
+}
+
+#maxWeightInput:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+@keyframes highlight {
+  0% { background-color: rgba(144, 238, 144, 0.3); }
+  100% { background-color: transparent; }
+}
+
+.chartjs-tooltip {
+  opacity: 1 !important;
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: white;
+  border-radius: 6px;
+  padding: 10px 15px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.chartjs-tooltip-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 50%;
+}
+
+.chartjs-tooltip-text {
+  white-space: nowrap;
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.chartjs-tooltip-header {
+  font-weight: bold;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#dropRateChart {
+  width: 100% !important;
+  height: 300px !important;
+  max-height: none !important;
+  display: block !important;
+}
+
+/* Second table - aligned all the way to the right */
+.fish-list:last-child {
+  position: absolute;
+  right: -30px;
+  top: -10px;
+}
+
+/* Fish List */
+.fish-list {
+  width: 500px;
+  min-width: 500px; /* Prevent shrinking */
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+/* First fish list - wider */
+.fish-list:first-child {
+  width: 550px;
+}
+
+.fish-list:hover {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Headers */
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* Fish Items */
+.fish-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-tertiary);
+  padding: 12px 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  transition: var(--transition);
+  text-align: center;
+  gap: 5px;
+}
+
+.fish-item:hover {
+  background: var(--highlight);
+  transform: translateY(-1px);
+}
+
+/* Column Widths */
+.name { 
+  width: 160px; 
+  text-align: center;
+  padding: 0 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.counter { 
+  width: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.greutate { 
+  width: 80px;
+  text-align: center;
+  color: var(--accent);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.money { 
+  width: 80px;
+  text-align: center;
+  color: var(--accent);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Second fish list specific styles */
+.fish-list:last-child .name {
+  width: 50%;
+}
+
+.fish-list:last-child .counter {
+  width: 30%;
+  min-width: 80px;
+}
+
+.fish-list:last-child .money {
+  width: 20%;
+  min-width: 60px;
+}
+
+/* Inputs */
+.counter input {
+  width: 50px;
+  height: 32px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.counter input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* Buttons */
+button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--transition);
+  min-width: 30px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+}
+
+/* Reset Buttons */
+#resetButton, #resetButton2 {
+  margin-top: 20px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  padding: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--accent);
+  transition: var(--transition);
+  box-shadow: var(--accent-glow);
+}
+
+#resetButton:hover, #resetButton2:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+#resetButton:active, #resetButton2:active {
+  background-color: var(--accent-active);
+  transform: translateY(1px);
+}
+
+/* Chart Section */
+.chart-section {
+  width: 470px;
+  background: var(--bg-secondary);
+  padding: 20px 15px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+#chartContainer {
+  background: var(--bg-secondary);
+  padding: 20px 10px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin: 20px auto 0;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+
+/* Cash Tab */
+.cash-tab {
+  background: var(--bg-tertiary);
+  color: var(--accent);
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin: 8px 0;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-tertiary);
+  border-radius: 5px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+#progressFill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Weight Input */
+.weight-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 5px 10px;
+  border-radius: 4px;
+  width: 100px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Hide number input spinners */
+input[type="number"] {
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .main-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .fish-list, .chart-section {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .fish-list, .chart-section {
+    width: 100%;
+  }
+  
+  .name { width: 35%; }
+  .counter { width: 30%; }
+  .greutate { width: 15%; }
+  .money { width: 20%; }
+  
+  .counter input {
+    width: 40px;
+    height: 28px;
+  }
+}
+
+/* Remove specific style for second cash tab to use the default cash-tab class */
+
+#resetButton, #resetButton2 {
+  margin-top: 20px;
+  width: 100%;
+  background-color: #b22222;
+  border-color: #8b1a1a;
+}
+#resetButton:hover, #resetButton2:hover {
+  background-color: #8b1a1a;
+}
+
+.fish-count,
+#weightStatus,
+#totalWeight {
+  margin-top: 10px;
+  color: var(--accent);
+  font-weight: 500;
+  text-align: center;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+}
+
+#maxWeightContainer {
+  margin: 15px 0;
+  text-align: center;
+  width: 100%;
+}
+
+#maxWeightContainer > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.label {
+  color: #90ee90;
+  font-weight: bold;
+  margin: 0 5px;
+}
+
+.weight-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  text-align: center;
+  width: 80px;
+  font-weight: 500;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+  caret-color: var(--accent);
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.weight-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.weight-input:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Cash Inputs Section */
+.cash-inputs {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 10px 0;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background-color: #333;
+  border-radius: 10px;
+  margin: 10px 0;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #2196F3, #64b5f6);
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+#weightProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #81c784);
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+/* Target Progress Bar */
+#progressFill[style*="100%"] {
+  background: linear-gradient(90deg, #4CAF50, #81c784);
+}
+
+/* Weight Progress Bar */
+#weightProgressFill[style*="100%"] {
+  background: linear-gradient(90deg, #f44336, #e57373);
+}
+
+.cash-input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  justify-content: space-between;
+}
+
+.cash-input-group:last-child {
+  margin-bottom: 0;
+}
+
+.cash-input-group label {
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-right: 10px;
+  white-space: nowrap;
+}
+
+.cash-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: 120px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  text-align: right;
+}
+
+.cash-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.percentage-display {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
