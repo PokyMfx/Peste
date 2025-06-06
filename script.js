@@ -309,24 +309,34 @@ function updateTotalCash() {
 }
 
 function changeValue(button, delta) {
-  const input = button.parentElement.querySelector("input");
-  const container = button.closest(".fish-item");
+  const container = button.closest('.fish-item');
+  const input = container.querySelector('input');
   const fishName = container.querySelector('.name').textContent;
   const isSpecialFish = container.closest('#fishList2') !== null;
-  const val = Math.max(0, (parseInt(input.value) || 0) + delta);
+  let value = parseInt(input.value) || 0;
+  value = Math.max(0, value + delta);
   
-  input.value = val;
-  updateItem(container, val);
+  // Update the input value
+  input.value = value;
   
-  // Update totals and UI
+  // Trigger input and change events to ensure all listeners are notified
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  
+  // Update the UI
+  updateItem(container, value);
   updateTotalCash();
   updateChart();
   saveState();
   
-  // Get the fish counts object for the appropriate table
-  const fishType = isSpecialFish ? 'specialFishCounts' : 'fishCounts';
-  const counts = {};
-  counts[fishType] = {};
+  // Update server state
+  if (window.updateServerState) {
+    const fishType = isSpecialFish ? 'specialFishCounts' : 'fishCounts';
+    const updates = {};
+    updates[fishType] = {};
+    updates[fishType][fishName] = value;
+    window.updateServerState(updates);
+  }
   
   // Get all fish counts from the appropriate table
   const tableId = isSpecialFish ? '#fishList2' : '#fishList';
@@ -612,13 +622,8 @@ const updateChart = debounce(() => {
       if (window.dropRateChart) {
         window.dropRateChart.data.datasets[0].data = percentages;
         
-        // Update colors based on percentage
-        window.dropRateChart.data.datasets[0].backgroundColor = percentages.map(p => {
-          const percent = parseFloat(p);
-          if (percent > 20) return 'rgba(255, 99, 132, 0.7)';
-          if (percent > 10) return 'rgba(255, 206, 86, 0.7)';
-          return 'rgba(75, 192, 192, 0.7)';
-        });
+        // Use a single green color for all bars
+        window.dropRateChart.data.datasets[0].backgroundColor = 'rgba(75, 192, 192, 0.7)';
         
         // Update labels if needed
         if (window.dropRateChart.data.labels.length === 0) {
