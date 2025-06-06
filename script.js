@@ -319,23 +319,33 @@ function changeValue(button, delta) {
   // Update the input value
   input.value = value;
   
-  // Trigger input and change events to ensure all listeners are notified
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-  input.dispatchEvent(new Event('change', { bubbles: true }));
-  
-  // Update the UI
+  // Update the UI immediately for better responsiveness
   updateItem(container, value);
   updateTotalCash();
   updateChart();
+  
+  // Prepare the update for the server
+  const fishType = isSpecialFish ? 'specialFishCounts' : 'fishCounts';
+  const updates = {
+    [fishType]: {
+      [fishName]: value
+    }
+  };
+  
+  // Save state to localStorage
   saveState();
   
-  // Update server state
-  if (window.updateServerState) {
-    const fishType = isSpecialFish ? 'specialFishCounts' : 'fishCounts';
-    const updates = {};
-    updates[fishType] = {};
-    updates[fishType][fishName] = value;
-    window.updateServerState(updates);
+  // Update server state if socket is available
+  if (window.socket && window.socket.connected) {
+    console.log('Sending update to server:', updates);
+    window.socket.emit('update', updates);
+  } else {
+    console.warn('Socket not connected, changes will not be synced');
+  }
+  
+  // Manually trigger a state update to ensure UI is in sync
+  if (window.updateUIFromState) {
+    window.updateUIFromState({ [fishType]: { [fishName]: value } });
   }
   
   // Get all fish counts from the appropriate table

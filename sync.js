@@ -31,15 +31,40 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Function to update UI from server state
-function updateUIFromState(state) {
+window.updateUIFromState = function(state) {
   if (!state) return;
   
-  let isUpdatingFromServer = false;
-  
-  isUpdatingFromServer = true;
   console.log('Updating UI from state:', state);
   
   try {
+    // Update fish counts from fishCounts
+    if (state.fishCounts) {
+      Object.entries(state.fishCounts).forEach(([fishName, value]) => {
+        const input = document.querySelector(`input[data-name="${fishName}"]`);
+        if (input) {
+          const container = input.closest('.fish-item');
+          if (container && parseInt(input.value) !== value) {
+            input.value = value;
+            updateItem(container, value);
+          }
+        }
+      });
+    }
+    
+    // Update special fish counts from specialFishCounts
+    if (state.specialFishCounts) {
+      Object.entries(state.specialFishCounts).forEach(([fishName, value]) => {
+        const input = document.querySelector(`#fishList2 input[data-name="${fishName}"]`);
+        if (input) {
+          const container = input.closest('.fish-item');
+          if (container && parseInt(input.value) !== value) {
+            input.value = value;
+            updateItem(container, value);
+          }
+        }
+      });
+    }
+    
     // Update max weight input
     if (state.maxWeight !== undefined) {
       const maxWeightInput = document.getElementById('maxWeightInput');

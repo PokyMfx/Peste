@@ -33,19 +33,43 @@ io.on('connection', (socket) => {
     console.log('Received update from client:', socket.id, newState);
     
     // Update the server state with new values
+    let stateChanged = false;
+    
     Object.keys(newState).forEach(key => {
       if (newState[key] !== undefined) {
         if (typeof newState[key] === 'object' && newState[key] !== null) {
-          appState[key] = { ...(appState[key] || {}), ...newState[key] };
+          // For objects (like fishCounts), merge the updates
+          const currentState = appState[key] || {};
+          const updatedState = { ...currentState };
+          
+          // Only update if the value has actually changed
+          Object.keys(newState[key]).forEach(subKey => {
+            if (updatedState[subKey] !== newState[key][subKey]) {
+              updatedState[subKey] = newState[key][subKey];
+              stateChanged = true;
+            }
+          });
+          
+          if (Object.keys(updatedState).length > 0) {
+            appState[key] = updatedState;
+          }
         } else {
-          appState[key] = newState[key];
+          // For non-object values, update if changed
+          if (appState[key] !== newState[key]) {
+            appState[key] = newState[key];
+            stateChanged = true;
+          }
         }
       }
     });
     
-    console.log('Broadcasting updated state to all clients');
-    // Broadcast the update to all connected clients
-    broadcastState();
+    if (stateChanged) {
+      console.log('State changed, broadcasting to all clients');
+      // Broadcast the update to all connected clients
+      broadcastState();
+    } else {
+      console.log('No state changes detected, skipping broadcast');
+    }
   });
   
   socket.on('disconnect', () => {
