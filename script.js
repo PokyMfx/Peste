@@ -596,7 +596,7 @@ const updateChart = debounce(() => {
   console.log('updateChart called');
   
   if (!window.dropRateChart) {
-    console.error('Chart not initialized yet');
+    console.log('Chart not initialized, skipping update');
     return;
   }
   
@@ -640,53 +640,6 @@ const updateChart = debounce(() => {
     }
   });
 }, 50);
-
-// Function to update weight display
-function updateWeightDisplay() {
-  const counts = getFishCounts();
-  const totalWeight = counts.reduce((sum, count, index) => {
-    return sum + (count * (window.fishData?.[index]?.weight || 0));
-  }, 0);
-  
-  const maxWeight = parseFloat(document.getElementById("maxWeightInput")?.value) || 0;
-  const remainingWeight = Math.max(0, maxWeight - totalWeight);
-  const progressFill = document.getElementById("progressFill");
-  const weightStatus = document.getElementById("weightStatus");
-  
-  // Update progress bar
-  const progress = maxWeight > 0 ? Math.min(totalWeight / maxWeight, 1) : 0;
-  
-  // Calculate remaining weight percentage
-  const remainingPercentage = (1 - progress) * 100;
-  
-  // Update weight status
-  if (weightStatus) {
-    weightStatus.textContent = `Greutate rămasă: ${remainingWeight.toFixed(2)} kg`;
-    
-    // Set text color to match progress bar
-    if (remainingPercentage >= 50) {
-      weightStatus.style.color = '#4CAF50'; // Green
-    } else if (remainingPercentage >= 20) {
-      weightStatus.style.color = '#FFA000'; // Orange
-    } else {
-      weightStatus.style.color = '#F44336'; // Red
-    }
-    
-    // Update weight status
-    if (weightStatus) {
-      weightStatus.textContent = `Greutate rămasă: ${remainingWeight.toFixed(2)} kg`;
-      
-      // Set text color to match progress bar
-      if (remainingPercentage >= 50) {
-        weightStatus.style.color = '#4CAF50'; // Green
-      } else if (remainingPercentage >= 20) {
-        weightStatus.style.color = '#FFA000'; // Orange
-      } else {
-        weightStatus.style.color = '#F44336'; // Red
-      }
-    }
-  });
-}, 50); // 50ms debounce time
 
 // Function to update second table fish count
 function updateSecondTable() {
