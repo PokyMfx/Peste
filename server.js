@@ -22,6 +22,12 @@ io.on('connection', (socket) => {
   // Send current state to newly connected client
   socket.emit('state', appState);
   
+    // Handle initial state request
+  socket.on('getState', () => {
+    console.log('Sending initial state to client:', socket.id);
+    socket.emit('state', appState);
+  });
+  
   // Handle state updates from clients
   socket.on('update', (newState) => {
     console.log('Received update from client:', socket.id, newState);

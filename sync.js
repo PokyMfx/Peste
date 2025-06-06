@@ -12,28 +12,23 @@ window.syncUpdateTotalCash = function() {
   }
 };
 
-// Connection events
-if (socket) {
-  socket.on('connect', () => {
-    console.log('Connected to WebSocket server with ID:', socket.id);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Disconnected from WebSocket server');
-  });
-
-  socket.on('connect_error', (error) => {
-    console.error('WebSocket connection error:', error);
-  });
+// Initialize when document is ready
+document.addEventListener('DOMContentLoaded', () => {
+  if (!socket) {
+    console.error('Socket.IO connection not found');
+    return;
+  }
 
   // Listen for state updates from server
   socket.on('state', (state) => {
     console.log('Received state update:', state);
     updateUIFromState(state);
   });
-} else {
-  console.error('Socket.IO connection not found');
-}
+
+  // Request initial state
+  console.log('Requesting initial state from server');
+  socket.emit('getState');
+});
 
 // Function to update UI from server state
 function updateUIFromState(state) {

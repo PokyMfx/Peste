@@ -90,39 +90,55 @@
       </div>
     </div>
   </div>
-  <!-- Load Chart.js v3.9.1 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <!-- Load Chart.js datalabels plugin v2.0.0 -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-  <!-- Socket.IO -->
+  <!-- Load Socket.IO first -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   
-  <!-- Your scripts -->
-  <script src="script.js"></script>
-  <script src="sync.js"></script>
-  
-  <!-- Socket.IO connection and state management is handled in sync.js -->
+  <!-- Initialize socket connection -->
   <script>
-    // Make sure the socket is accessible globally
-    window.socket = io({
+    // Initialize socket connection
+    const socket = io({
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      transports: ['websocket'],
-      upgrade: false,
+      transports: ['websocket', 'polling'],
+      upgrade: true,
       path: '/socket.io/'
     });
+    
+    // Make socket globally available
+    window.socket = socket;
     
     // Global flag to prevent update loops
     window.isUpdatingFromServer = false;
     
     // Function to send state updates to server
     window.updateServerState = function(updates) {
-      if (!window.isUpdatingFromServer && window.socket) {
-        window.socket.emit('update', updates);
+      if (!window.isUpdatingFromServer && socket.connected) {
+        socket.emit('update', updates);
       }
     };
+    
+    // Log connection status
+    socket.on('connect', () => {
+      console.log('Connected to server with ID:', socket.id);
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+    
+    socket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+    });
   </script>
+  
+  <!-- Load Chart.js and other dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  
+  <!-- Load application scripts -->
+  <script src="script.js"></script>
+  <script src="sync.js"></script>
   
   <!-- Firebase Sync -->
   <script>
