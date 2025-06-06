@@ -609,63 +609,67 @@ const updateChart = debounce(() => {
       console.log('Updating chart with data:', { counts, total, percentages });
       
       // Update chart data
-      window.dropRateChart.data.datasets[0].data = percentages;
-      
-      // Update colors based on percentage
-      window.dropRateChart.data.datasets[0].backgroundColor = percentages.map(p => {
-        const percent = parseFloat(p);
-        if (percent > 20) return 'rgba(255, 99, 132, 0.7)';
-        if (percent > 10) return 'rgba(255, 206, 86, 0.7)';
-        return 'rgba(75, 192, 192, 0.7)';
-      });
-      
-      // Update labels if needed
-      if (window.dropRateChart.data.labels.length === 0) {
-        window.dropRateChart.data.labels = fishNames;
+      if (window.dropRateChart) {
+        window.dropRateChart.data.datasets[0].data = percentages;
+        
+        // Update colors based on percentage
+        window.dropRateChart.data.datasets[0].backgroundColor = percentages.map(p => {
+          const percent = parseFloat(p);
+          if (percent > 20) return 'rgba(255, 99, 132, 0.7)';
+          if (percent > 10) return 'rgba(255, 206, 86, 0.7)';
+          return 'rgba(75, 192, 192, 0.7)';
+        });
+        
+        // Update labels if needed
+        if (window.dropRateChart.data.labels.length === 0) {
+          window.dropRateChart.data.labels = window.fishNames || [];
+        }
+        
+        // Trigger update with animation
+        window.dropRateChart.update({
+          duration: 300,
+          easing: 'easeOutQuad'
+        });
+        
+        // After updating the chart, sync the state
+        console.log('Chart updated, syncing state...');
+        updateServerState({ chartData: window.dropRateChart.data });
       }
-      
-      // Trigger update with animation
-      window.dropRateChart.update({
-        duration: 300,
-        easing: 'easeOutQuad'
-      });
-      
-      // After updating the chart, sync the state
-      console.log('Chart updated, syncing state...');
-      updateServerState({ chartData: window.dropRateChart.data });
     } catch (error) {
       console.error('Error in updateChart:', error);
     }
   });
 }, 50);
+
+// Function to update weight display
+function updateWeightDisplay() {
+  const counts = getFishCounts();
+  const totalWeight = counts.reduce((sum, count, index) => {
+    return sum + (count * (window.fishData?.[index]?.weight || 0));
+  }, 0);
+  
+  const maxWeight = parseFloat(document.getElementById("maxWeightInput")?.value) || 0;
+  const remainingWeight = Math.max(0, maxWeight - totalWeight);
+  const progressFill = document.getElementById("progressFill");
+  const weightStatus = document.getElementById("weightStatus");
+  
+  // Update progress bar
+  const progress = maxWeight > 0 ? Math.min(totalWeight / maxWeight, 1) : 0;
+  
+  // Calculate remaining weight percentage
+  const remainingPercentage = (1 - progress) * 100;
+  
+  // Update weight status
+  if (weightStatus) {
+    weightStatus.textContent = `Greutate rămasă: ${remainingWeight.toFixed(2)} kg`;
     
-    const maxWeight = parseFloat(document.getElementById("maxWeightInput")?.value) || 0;
-    const remainingWeight = Math.max(0, maxWeight - totalWeight);
-    const progressFill = document.getElementById("progressFill");
-    const weightStatus = document.getElementById("weightStatus");
-    
-    // Update progress bar
-    const progress = maxWeight > 0 ? Math.min(totalWeight / maxWeight, 1) : 0;
-    
-    // Calculate remaining weight percentage
-    const remainingPercentage = (1 - progress) * 100;
-    
-    // Update weight progress bar
-    const weightProgressBar = document.getElementById('weightProgressFill');
-    if (weightProgressBar) {
-      weightProgressBar.style.width = `${progress * 100}%`;
-      
-      // Set color based on remaining weight percentage
-      if (remainingPercentage >= 50) {
-        // Green for 50-100% remaining
-        weightProgressBar.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
-      } else if (remainingPercentage >= 20) {
-        // Yellow for 20-49% remaining
-        weightProgressBar.style.background = 'linear-gradient(90deg, #FFC107, #FFA000)';
-      } else {
-        // Red for 0-19% remaining
-        weightProgressBar.style.background = 'linear-gradient(90deg, #F44336, #D32F2F)';
-      }
+    // Set text color to match progress bar
+    if (remainingPercentage >= 50) {
+      weightStatus.style.color = '#4CAF50'; // Green
+    } else if (remainingPercentage >= 20) {
+      weightStatus.style.color = '#FFA000'; // Orange
+    } else {
+      weightStatus.style.color = '#F44336'; // Red
     }
     
     // Update weight status

@@ -2,7 +2,7 @@
 console.log('Sync script loaded');
 
 // Use the global socket connection from index.html
-const socket = window.socket;
+// No need to declare socket here, it's already global
 
 // Make updateTotalCash available globally
 window.syncUpdateTotalCash = function() {
