@@ -633,7 +633,7 @@ const updateChart = debounce(() => {
         window.dropRateChart.data.datasets[0].data = percentages;
         
         // Use a single green color for all bars
-        window.dropRateChart.data.datasets[0].backgroundColor = 'rgba(75, 192, 192, 0.7)';
+        window.dropRateChart.data.datasets[0].backgroundColor = 'rgba(9, 255, 0, 0.7)';
         
         // Update labels if needed
         if (window.dropRateChart.data.labels.length === 0) {
