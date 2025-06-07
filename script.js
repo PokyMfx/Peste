@@ -305,7 +305,15 @@ function updateTotalCash() {
     }
   }
   
-  return { total1, total2, totalCombined, totalPackedCash: 0, percentage: 0 };
+  // Return previous values if they exist, otherwise return zeros
+  const prevState = loadState();
+  return { 
+    total1: total1 || 0, 
+    total2: total2 || 0, 
+    totalCombined: totalCombined || 0, 
+    totalPackedCash: prevState ? (prevState.totalPackedCash || 0) : 0, 
+    percentage: 0 
+  };
 }
 
 function changeValue(button, delta) {
